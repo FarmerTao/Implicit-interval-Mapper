@@ -19,7 +19,7 @@ class Trainer():
         self.mode_clusters = None
         self.mode_assignmnets = None
         
-    def fit(self, data, projected_data, l1 = 1, l2 = 1):
+    def fit(self, data, projected_data, l1 = 1, l2 = 1): # likelihood, topo
         losses = []
         topo_losses = []
         # train
@@ -54,7 +54,7 @@ class Trainer():
                                   path='figures',name = 'MSBB_44',format = 'eps',type = self.Mapper.type)
         self.G_mode = mapper.mode(save_fig= False)
         self.mode_clusters = mapper.mode_clusters
-        self.mode_assignmnets = mapper.assignments
+        self.mode_assignments = mapper.assignments
         return
 
     def analysis(self):

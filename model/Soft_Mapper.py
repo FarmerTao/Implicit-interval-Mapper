@@ -135,7 +135,7 @@ class GMM_Soft_Mapper():
         mode_filtration = compute_filtration(mode_clusters,self.f)
         G_mode = draw_graph(mode_clusters[0],mode_filtration[0], self.path, self.name+"_mode", self.format,save_fig)
 
-        self.mode_assignments = mode_assignments
+        self.mode_assignments = mode_assignments.squeeze(0)
         self.mode_clusters = mode_clusters
         self.mode_filtration = mode_filtration
 

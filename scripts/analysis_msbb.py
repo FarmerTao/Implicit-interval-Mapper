@@ -164,14 +164,14 @@ def analysis_braak(G_mode, train, data_path, projected_data, good_nodes, x_lim, 
     #ax[1].pie(frac_all, labels=['0', '1','2','3','4','5','6'], colors=color_list)
 
     _, count = qurey_frac(clusters,good_nodes,data_path)
-  
+    print(count_all-count)
 
     # 对应的类别
     categories = [0,1,2,3,4,5,6]
     plt.subplot(222)
     # 创建柱状图
     plt.bar(categories, count, alpha = 0.5, color = "#FEA3A2", label = "Nodes inside the red dashed box")
-    plt.bar(categories, count_all, bottom=count, color = "#8E8BFE", label = "All nodes")
+    plt.bar(categories, count_all, bottom=count, color = "#8E8BFE", label = "The rest of nodes")
     # 添加标题和标签
     #plt.bar_label(b)
     plt.legend()
@@ -182,7 +182,7 @@ def analysis_braak(G_mode, train, data_path, projected_data, good_nodes, x_lim, 
 
     # GMM PDF
     m = train.Mapper
-    x = torch.linspace(float(torch.min(m.means))-0.1,float(torch.max(m.means))+0.1, 1000)
+    x = torch.linspace(2.4,3.95, 1000)
     mix = D.Categorical(probs=m.weights)
     comp = D.Normal(m.means, torch.sqrt(m.covariances.abs())) 
     gmm = D.MixtureSameFamily(mix,comp)
@@ -192,7 +192,7 @@ def analysis_braak(G_mode, train, data_path, projected_data, good_nodes, x_lim, 
     # density
     plt.plot(x.detach().numpy(), pdf.detach().numpy())
 
-    mode_H = train.mode_assignmnets
+    mode_H = train.mode_assignments
     #mode_H = mode_H[:, ~torch.all(mode_H == 0, dim=0)] 
 
 

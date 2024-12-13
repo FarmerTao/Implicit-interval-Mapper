@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.distributions as D
-from .utils import compute_mapper,GMM,compute_filtration_ll
+from .utils import *
 import matplotlib.pyplot as plt
 import numpy as np
 import gudhi as gd
@@ -150,7 +150,11 @@ class Opt_GMM_Mapper(nn.Module):
         self.mode_dgm = None
         self.topo_mode_loss = None
 
-    def forward(self, f, X, cluster): #filtered data, data
+    def forward(self, f, X, clustering): #filtered data, data
+        self.f = f
+        self.data = X
+        self.clustering = clustering
+
         # update weights and variance by using free parameters
         self.weights = torch.exp(self.free_para)/torch.exp(self.free_para).sum()
         nan_mask = torch.isnan(self.weights)
@@ -176,7 +180,9 @@ class Opt_GMM_Mapper(nn.Module):
 
         # threotical of mode_assignments
         mode_assignments = self._row_mode(Q)
-        #print(mode_assignments)
+        self.mode_assignments = mode_assignments
+
+
         #check
         rows_all_zeros = mode_assignments.sum(dim=1) == 0
         indices_all_zeros = torch.nonzero(rows_all_zeros, as_tuple=True)
@@ -184,19 +190,23 @@ class Opt_GMM_Mapper(nn.Module):
 
         mode_assignments = mode_assignments.unsqueeze(0) # 1x (num_points) x (resolution)
         
-        mode_clusters = compute_mapper(X, cluster, mode_assignments, input_type = self.type)
+        mode_clusters = compute_mapper(X, clustering, mode_assignments, input_type = self.type)
         mode_clusters = torch.Tensor(mode_clusters) #{0,1}
         mode_clusters = mode_clusters.to(X.dtype) # 1 x (num_points) x (resolution)
 
         # compute filtration for Mapper node
         mode_filtration = compute_filtration_ll(mode_clusters,self.log_likelihood) # 1 x (num_points) x (resolution)
-
+        mode_filtration_f = compute_filtration(mode_clusters,f)
         # delete all 0 column
         mode_clusters = mode_clusters[0]
         mode_filtration = mode_filtration[0]
         zero_indice = torch.all(mode_clusters == 0, dim=0)
         mode_clusters = mode_clusters[:, ~zero_indice]
         mode_filtration = mode_filtration[~zero_indice] #nan去掉
+
+        self.mode_filtration = mode_filtration
+        self.mode_filtration_f = mode_filtration_f[0][~zero_indice]
+        self.mode_clusters = mode_clusters
 
         # construct simplex tree
         simplextree = gd.SimplexTree()
@@ -224,17 +234,23 @@ class Opt_GMM_Mapper(nn.Module):
         self.mode_dgm = layer(mode_filtration)
         
         topo_mode_loss = 0.
-        for d in self.mode_dgm:     
+        num_points = 0 # num of points in dgm
+        for d in self.mode_dgm:   
+            l = len(d[0].size())
             if torch.numel(d[0]) != 0:
-                if len(d[0].size()) == 1:
+                if l == 1:
+                    num = 1 
                     topo_mode_loss = topo_mode_loss + (d[0][0] - d[0][1]).abs().sum()
-                if len(d[0].size()) > 1:
+                if l > 1:
+                    num = d[0].size(0) 
                     topo_mode_loss = topo_mode_loss + (d[0][:, 0] - d[0][:, 1]).abs().sum()
             else:
+                num = 0
                 topo_mode_loss = topo_mode_loss + d[0].sum() + 1e-12
-        
-        self.topo_mode_loss = -topo_mode_loss
-
+            num_points = num_points + num
+        #print(num_points)
+        self.topo_mode_loss = - topo_mode_loss / num_points # average
+        #print(self.topo_mode_loss)
         return Q
 
     def _row_mode(self,scheme): # (num_points) x (resolution)
@@ -253,11 +269,11 @@ class Opt_GMM_Mapper(nn.Module):
     
     def loss(self,l1,l2):
         self.neg_log_likelihood = - self.log_likelihood.sum() / len(self.log_likelihood) #average loglikelihood
+        # print(self.neg_log_likelihood)
         loss = l1*self.neg_log_likelihood + l2*self.topo_mode_loss 
         return loss
     
     def draw(self):
-
         x = torch.linspace(float(torch.min(self.means))-5,float(torch.max(self.means))+5, 1000)
         mix = D.Categorical(probs=self.weights)
         comp = D.Normal(self.means, torch.sqrt(self.covariances)) 
@@ -271,3 +287,39 @@ class Opt_GMM_Mapper(nn.Module):
         plt.ylabel('Probability Density')
         plt.title('GMM Probability Density Function')
         plt.show()
+
+    def get_mode_graph(self):
+        G = generate_graph(self.mode_clusters,self.mode_filtration)
+        return G
+    
+    def sample(self,K, scheme):
+        f = self.f
+        f = f.repeat(1, K).T
+        f = torch.unsqueeze(f, dim=2)
+
+        upscheme = scheme.repeat(K,1,1)
+        
+        # sample H from Multinomial distribution
+        assignments = D.Multinomial(total_count=2, probs=upscheme.permute(0, 2, 1)).sample()
+  
+        self.assignments = assignments
+
+        # Mapper function
+        clusters = compute_mapper(self.data, self.clustering, assignments,input_type=self.type)
+
+        self.sample_clusters = clusters
+
+        # compute filter for each node
+        filtration = compute_filtration(clusters,f)
+        self.sample_filtration = filtration
+
+
+        G_list = []
+
+        for k in range(K):
+            clusters_k = clusters[k]
+            filtration_k = filtration[k]
+            G = generate_graph(clusters_k,filtration_k)
+            G_list.append(G)
+
+        return G_list #return networkx graph

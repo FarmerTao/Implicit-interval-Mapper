@@ -80,28 +80,9 @@ def compute_mapper(X,clustering,assignments,input_type="point cloud",maximum=10)
 
 def compute_dgm(clusters_k,filtration_k): 
         
-    # 删除全为0的列
+
     clusters_k = clusters_k[:, ~torch.all(clusters_k == 0, dim=0)]
-
-    filtration_k = filtration_k[~torch.isnan(filtration_k)] #nan去掉
-
-    '''
-    simplextree = SimplicialComplex()
-    for j in range(filtration_k.shape[0]):
-        simplextree.append([j])
-
-    indices_combination = list(combinations(range(clusters_k.shape[1]), 2))
-    for combine in indices_combination:
-        temp = torch.dot(clusters_k[:,combine[0]],clusters_k[:,combine[1]])
-        if temp != 0:
-            simplextree.append(list(combine))
-
-    layer = LevelSetLayer(simplextree, maxdim=0, sublevel=True)
-    sumlayer = SumBarcodeLengths(dim=0)
-    dgms = layer(filtration_k)
-    sum = sumlayer(dgms)
-    sum = sum.float()
-    '''
+    filtration_k = filtration_k[~torch.isnan(filtration_k)] #
 
     simplextree = gd.SimplexTree()
 
@@ -129,7 +110,7 @@ def compute_dgm(clusters_k,filtration_k):
     
     simplextree.extend_filtration()
 
-    dgms = simplextree.extended_persistence() #这句话出问题了
+    dgms = simplextree.extended_persistence() 
 
     dgm = []
     
@@ -165,6 +146,25 @@ def draw_graph(clusters_k,filtration_k,path='figures',name = 'example',format = 
         plt.savefig(path)
         
     plt.show()  
+
+    return G
+
+def generate_graph(clusters_k,filtration_k):
+
+    filtration_k = filtration_k[~torch.all(clusters_k == 0, dim=0)]
+    clusters_k = clusters_k[:, ~torch.all(clusters_k == 0, dim=0)]
+    #filtration_k = filtration_k[~torch.isnan(filtration_k)]
+    
+    # create networkx graph
+    G = nx.Graph()
+    G.add_nodes_from(range(len(filtration_k)))
+    indices_combination = list(combinations(range(clusters_k.shape[1]), 2))
+    
+    for combine in indices_combination:
+        
+        temp = torch.dot(clusters_k[:,combine[0]],clusters_k[:,combine[1]])
+        if temp != 0:
+            G.add_edge(combine[0],combine[1])
 
     return G
 
@@ -226,15 +226,15 @@ class GMM:
     
     def component_probs(self, x):
         """
-        计算每个数据点属于每个高斯成分的概率。
-        :param x: 输入数据点，形状为 (batch_size,)。
-        :return: 每个数据点属于每个高斯成分的概率，形状为 (batch_size, n_components)。
+        Compute the assignment probability of each point
+        :param x: input data points, shape: (batch_size,)。
+        :return: compute probability of each point, shape: (batch_size, n_components)。
         """
         
         batch_size = x.shape[0]
         n_components = self.weights.shape[0]
         
-        # 初始化概率矩阵
+        # initialize
         component_probs = torch.zeros(batch_size, n_components)
 
         for i in range(n_components):
