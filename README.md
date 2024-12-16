@@ -1,5 +1,12 @@
 # Implicit-interval-Mapper
-This project implements a Mapper Algorithm with implicit intervals and its optimization. All examples in the mannuscript are provided in a Jupyter notebook. The data folder contains the datasets used in the simulation studies, while the model folder contains the implementation of our proposed model.
+This repository implements optimization of a Mapper Algorithm with implicit intervals described in Tao, Yuyang, and Shufei Ge. "A Mapper Algorithm with implicit intervals and its optimization". The code files are released under the open source BSD 2-clause license.
+
+All examples in the mannuscript are provided in a Jupyter notebook. The data folder contains the datasets used in the simulation studies, while the model folder contains the implementation of our proposed model.
+
+## Citation
+If you use the code (partial or all) in your research, please cite the following manuscript:
+
+Yuyang Tao and Shufei Ge. "A Mapper Algorithm with implicit intervals and its optimization"
 
 ## Define a Mapper through `Opt_GMM_Mapper` class
 You can easily define a GMM soft Mapper using the `Opt_GMM_Mapper` class. The input parameters required are the number of intervals and the initial parameters for a GMM model. We recommend fitting a GMM directly to the projected data and using these fitted parameters as the initial values.
@@ -59,6 +66,13 @@ We also proved a function to easily sample from the distribution, `Opt_GMM_Mappe
 G_list = m.sample(8, train.scheme)
 
 ```
+
+## Help
+Please send bugs, feature requests and comments to tyyepsilon@126.com, or geshf@shanghaitech.edu.cn.
+
+
+
+
 
 
 
