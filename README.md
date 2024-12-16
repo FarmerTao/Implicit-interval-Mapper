@@ -25,6 +25,7 @@ Mapper_graph_mode = m.get_mode_graph()
 
 ```
 ## Optimization
+Optimization is a standard process in PyTorch. To simplify the training process, we provide a Trainer class. The `Trainer.fit(data, projected_data, l1, l2)` method automatically completes the training, `l1` and `l2` is weight of loss function. While `Trainer.analysis()` offers a simple analysis of the training process, including the variation of the loss function.
 
 ```python
 
@@ -52,6 +53,7 @@ train.analysis()
 
 
 ## Sample from the distribution
+We also proved a function to easily sample from the distribution, `Opt_GMM_Mapper.sample(num_samples, Q)`.
 ```python
 # Sample 8 samples from optimized distribution
 G_list = m.sample(8, train.scheme)
