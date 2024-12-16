@@ -53,7 +53,7 @@ train.analysis()
 
 
 ## Sample from the distribution
-We also proved a function to easily sample from the distribution, `Opt_GMM_Mapper.sample(num_samples, Q). This function will return a list of networkx graphs.
+We also proved a function to easily sample from the distribution, `Opt_GMM_Mapper.sample(num_samples, Q)`. This function will return a list of networkx graphs.
 ```python
 # Sample 8 samples from optimized distribution
 G_list = m.sample(8, train.scheme)
