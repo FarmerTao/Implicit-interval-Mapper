@@ -1,4 +1,5 @@
 # Implicit-interval-Mapper
+This project is a implemention of A Mapper Algorithm with implicit intervals and its optimization. All examples in the paper are provided in notebooks. The data folder contains datasets used in examples. The folder model provides implemention of our model.
 
 ## Define a Mapper through Opt_GMM_Mapper class
 ```python
