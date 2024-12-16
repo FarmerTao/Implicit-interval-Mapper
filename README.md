@@ -1,7 +1,9 @@
 # Implicit-interval-Mapper
-This project is a implemention of A Mapper Algorithm with implicit intervals and its optimization. All examples in the paper are provided in notebooks. The data folder contains datasets used in examples. The folder model provides implemention of our model.
+This project implements a Mapper Algorithm with implicit intervals and its optimization. All examples from the paper are provided in Jupyter notebooks. The data folder contains the datasets used in these examples, while the model folder contains the implementation of our model.
 
 ## Define a Mapper through Opt_GMM_Mapper class
+You can easily define a GMM soft Mapper using the Opt_GMM_Mapper class. The input parameters required are the number of intervals and the initial parameters for the GMM model. We recommend fitting a GMM directly to the projected data and using these fitted parameters as the initial values.
+
 ```python
 from model import Opt_GMM_Mapper
 
