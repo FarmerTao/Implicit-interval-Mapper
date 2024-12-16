@@ -13,7 +13,7 @@ m = Opt_GMM_Mapper(n_comp, means = init_mean, covariances=init_var, weights=init
 ```
 
 ## Compute Mapper graph mode
-Computing the Mapper graph mode is straightforward. A single step forward in the process can yield the distribution Q. Subsequently, the Mapper graph mode can be derived using the `get_mode_graph()` function.
+Computing the Mapper graph mode is straightforward. A single step forward in the process can yield the distribution Q. Subsequently, the Mapper graph mode can be derived using the `get_mode_graph()` function, the return is a networkx graph.
 
 ```python
 
@@ -53,7 +53,7 @@ train.analysis()
 
 
 ## Sample from the distribution
-We also proved a function to easily sample from the distribution, `Opt_GMM_Mapper.sample(num_samples, Q)`.
+We also proved a function to easily sample from the distribution, `Opt_GMM_Mapper.sample(num_samples, Q). This function will return a list of networkx graphs.
 ```python
 # Sample 8 samples from optimized distribution
 G_list = m.sample(8, train.scheme)
